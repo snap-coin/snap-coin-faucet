@@ -18,6 +18,8 @@ function PopUp({ onDone }: { onDone: (token: string, ekey: string) => void }) {
 
 function App() {
   const [testing, setTesting] = useState(false);
+  const [withdrawing, setWithdrawing] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [faucetInfo, setFaucetInfo] = useState<{
     wallet: string;
     balance: number;
@@ -64,6 +66,8 @@ function App() {
   } | null>(null);
 
   function onWithdrawal() {
+    setWithdrawing(false);
+    setLoading(true);
     fetch(BACKEND + "/withdraw-faucet", {
       method: "POST",
       headers: {
@@ -76,7 +80,9 @@ function App() {
     }).then((res) => {
       if (res.ok) {
         refreshOngoing();
+        setWithdrawing(true);
       }
+      setLoading(false);
     });
   }
 
@@ -147,10 +153,14 @@ function App() {
           ></input>
           {captchaKeys == null ? (
             <button onClick={() => setTesting(true)}>
-              <span className="flex items-center w-full gap-5 justify-center">
-                Prove you are human
-                <Ghost />
-              </span>
+              {loading ? (
+                <span>Withdrawing...</span>
+              ) : (
+                <span className="flex items-center w-full gap-5 justify-center">
+                  Prove you are human
+                  <Ghost />
+                </span>
+              )}
             </button>
           ) : (
             <button
@@ -167,6 +177,11 @@ function App() {
                 </span>
               </span>
             </button>
+          )}
+          {withdrawing && (
+            <p className="text-neutral-400">
+              Please wait for withdrawal to finish...
+            </p>
           )}
 
           <h1 className="text-2xl font-bold mt-10">Your Ongoing Withdrawals</h1>
