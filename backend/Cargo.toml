@@ -1,0 +1,18 @@
+[package]
+name = "backend"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.101"
+async-trait = "0.1.89"
+axum = "0.8.8"
+dotenv = "0.15.0"
+reqwest = { version = "0.13.2", features = ["json", "blocking", "form"] }
+serde = "1.0.228"
+serde_json = "1.0.149"
+snap-coin = "13.2.0"
+snap-coin-pay = "0.1.0"
+tokio = { version = "1.49.0", features = ["full"] }
+tower = "0.5.3"
+tower-http = { version = "0.6.8", features = ["cors"] }

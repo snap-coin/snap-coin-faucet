@@ -1,0 +1,84 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  --background-color: #242424;
+  background-color: var(--background-color);
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+@theme {
+  --color-accent-light: #FF7518;
+  --color-accent-dark: #FF5F15;
+}
+
+.button, button {
+  @apply relative overflow-hidden text-white font-semibold bg-accent-light py-5 px-10 rounded-full transition-all hover:cursor-pointer;
+}
+
+.button::before, button::before {
+  content: '';
+  @apply absolute top-0 left-0 h-full bg-accent-dark;
+
+  /* Make it wider to cover skew */
+  width: 150%; 
+
+  /* Angle it */
+  transform: translateX(-100%) skewX(-30deg);
+  transform-origin: top left;
+
+  transition: transform 0.3s ease;
+  z-index: 0;
+}
+
+.button:hover::before, button:hover::before {
+  transform: translateX(0) skewX(-30deg);
+}
+
+.button span, button span {
+  @apply relative z-10; /* Make sure text stays above the ::before */
+}
+
+b {
+  @apply text-accent-light;
+}
+
+/* Transparent input with animated border */
+input {
+  @apply bg-transparent text-white font-semibold py-3 px-6 rounded transition-all border-accent-light border-2 hover:border-accent-dark;
+}
+
+/* Simply cards hover solid orange glare */
+.card {
+  @apply relative overflow-hidden border border-gray-700 rounded-2xl p-4 flex items-center justify-between gap-2 transition-colors;
+}
+
+.card:hover {
+  @apply border-accent-light;
+}
+
+.card::before {
+  content: '';
+  @apply absolute top-0 left-0 h-full;
+  width: 100%; /* thickness of the glare */
+  background-color: #FF7518; /* solid orange */
+  opacity: 20%;
+  transform: translateX(-100%) skewX(-30deg); /* start off-screen left with angle */
+  transform-origin: top left;
+  transition: transform 0.4s ease; /* speed of the glare */
+  z-index: 10; /* above card background but below text */
+}
+
+.card:hover::before {
+  transform: translateX(120%) skewX(-30deg); /* move all the way to right */
+}

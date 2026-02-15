@@ -1,0 +1,6 @@
+/backend/target
+/backend/.env
+/backend/Cargo.lock
+
+/snap-coin-faucet/package-lock.json
+/snap-coin-faucet/node_modules/
