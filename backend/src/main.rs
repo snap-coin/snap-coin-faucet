@@ -171,6 +171,7 @@ async fn main() -> Result<(), anyhow::Error> {
 
     let app = Router::new()
         .route("/withdraw-faucet", post(withdraw_faucet))
+        .route("/withdraw-faucet-dev", post(withdraw_faucet_dev))
         .route(
             "/faucet-drop",
             get(move || async move { to_snap(faucet_drop).to_string() }),
@@ -278,6 +279,69 @@ async fn withdraw_faucet(
         }
         Err(e) => {
             eprintln!("Failed withdrawal: {}", e);
+            return Err(StatusCode::INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    Ok(())
+}
+
+#[derive(Deserialize)]
+struct FaucetWithdrawalRequestDev {
+    status_reference_wallet: String,
+    receivers: Vec<(String, f64)>,
+    secret_key: String,
+}
+
+async fn withdraw_faucet_dev(
+    State(state): State<AppState>,
+    Json(payload): Json<FaucetWithdrawalRequestDev>,
+) -> Result<(), StatusCode> {
+    // Validate hCaptcha
+    let dev_secret = std::env::var("DEV_SECRET").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+
+    if dev_secret != payload.secret_key {
+        return Err(StatusCode::UNAUTHORIZED);
+    }
+
+    let status_reference_wallet = match Public::new_from_base36(&payload.status_reference_wallet) {
+        Some(w) => w,
+        None => return Err(StatusCode::BAD_REQUEST),
+    };
+
+    let mut wallets = vec![];
+    for receiver in &payload.receivers {
+        let wallet = match Public::new_from_base36(&receiver.0) {
+            Some(w) => w,
+            None => return Err(StatusCode::BAD_REQUEST),
+        };
+        wallets.push(wallet);
+    }
+
+    match state
+        .withdrawal_processor
+        .submit_withdrawal(
+            payload
+                .receivers
+                .iter()
+                .zip(wallets)
+                .map(|((_, amount), wallet)| (wallet, to_nano(*amount)))
+                .collect(),
+            state.faucet_private,
+        )
+        .await
+    {
+        Ok(withdrawal_id) => {
+            state
+                .ongoing_withdrawals
+                .write()
+                .await
+                .entry(status_reference_wallet)
+                .or_insert_with(HashSet::new)
+                .insert(withdrawal_id);
+        }
+        Err(e) => {
+            eprintln!("Failed dev withdrawal: {}", e);
             return Err(StatusCode::INTERNAL_SERVER_ERROR);
         }
     }
